@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <script>
+        function confirmPassword(){
+            if(document.getElementById("password").value != document.getElementById("checkPassword").value){
+                alert('비밀번호를 다시 확인해주세요.');
+                return false;
+            }
+            return true;
+        }
+
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12" style="height : 100px;">
+            <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2" style="height : 480px">
+            <span class="fs-4">Categories</span>
+            <ul class="nav nav-pills flex-column mb-auto" style="border-right : solid;">
+                <li class="nav-item">
+                    <a href = "/">ALL</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=TOYS">TOYS</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=CLOTHES">CLOTHES</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=ELECTRONICS">ELECTRONICS</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-sm-8" style="border : 1px solid;">
+            <form action = "/members/signup" method = "post" th:object = ${memberForm} onsubmit="return confirmPassword()">
+                <label th:for="userId">아이디</label><br>
+                <input type = "text" th:field="*{userId}" placeholder="사용할 아이디를 입력하세요">
+                <p th:if = "${duplicationMessage != null}" style="color : red; font-size:0.7em">이미 사용 중인 아이디입니다.</p>
+                <br th:if="${duplicationMessage == null}">
+                <label th:for="password">비밀번호</label><br>
+                <input type = "password" th:field="*{password}" placeholder="비밀번호를 입력하세요"><br>
+
+                <label th:for="checkPassword">비밀번호 확인</label><br>
+                <input type = "password" th:field="*{checkPassword}" placeholder="비밀번호를 다시 입력하세요"><br>
+
+                <button id = "submit" type = "submit">가입하기</button>
+            </form>
+        </div>
+
+        <div class="col-sm-2" style = "background-color:ivory">광고</div>
+    </div>
+</div>
+</body>
+</html>
+

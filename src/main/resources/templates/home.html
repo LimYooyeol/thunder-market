@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="css/bootstrap.css">
+
+    <script>
+        window.onload = function(){
+            var prices = document.getElementsByClassName("price");
+
+            for(var i=0; i < prices.length; i++){
+                var item = prices.item(i);
+
+                var price = parseInt(item.innerHTML);
+
+                item.innerHTML = price.toLocaleString('ko-KR');
+            }
+
+            var dates = document.getElementsByClassName("date");
+
+            for(var i=0;i < dates.length; i++){
+                var item = dates.item(i);
+
+                var shortDate = '';
+
+                var date = item.innerHTML;
+
+                for(var j = 0; j < date.length && date.charAt(j) != 'T'; j++){
+                    shortDate += date.charAt(j);
+                }
+
+                item.innerHTML = shortDate;
+            }
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row" >
+        <div class="col-sm-12" style="height : 100px;">
+            <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2" style="height : 480px">
+            <span class="fs-4">Categories</span>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href = "/">ALL</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=TOYS">TOYS</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=CLOTHES">CLOTHES</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=ELECTRONICS">ELECTRONICS</a>
+                </li>
+            </ul>
+
+            <nav aria-label="Page navigation example">
+                <div style = "height : 250px"></div>
+                <ul class="pagination pagination-sm"
+                    th:with = "start=(${pagingInfo.current > 2 ? pagingInfo.current - 2 : 1}),
+                                          last = ${start + 3}">
+                    <th:block>
+                        <li th:if = "${category == null}" class="page-item"><a class="page-link" th:href="@{/(page = ${pagingInfo.current == 1 ? 1 : pagingInfo.current - 1})}"><</a></li>
+                        <li th:if = "${category != null}" class="page-item"><a class="page-link" th:href="@{/(category = ${category}, page = ${pagingInfo.current == 1 ? 1 : pagingInfo.current - 1})}"><</a></li>
+
+                        <li th:if = "${category == null}" th:each="page : ${#numbers.sequence(start, last)}"
+                            th:class="${page == pagingInfo.current}?'active'">
+                            <a class="page-link" th:text = "${page}" th:href="@{/(page=${page > pagingInfo.last ? pagingInfo.last : page })}"></a>
+                        </li>
+                        <li th:if = "${category != null}" th:each="page : ${#numbers.sequence(start, last)}"
+                            th:class="${page == pagingInfo.current}?'active'">
+                            <a class="page-link" th:text = "${page}" th:href="@{/(category = ${category}, page=${page > pagingInfo.last ? pagingInfo.last : page })}"></a>
+                        </li>
+                        <li th:if = "${category == null}" class="page-item"><a class="page-link" th:href="@{/(page = ${pagingInfo.current + 1 > pagingInfo.last ? pagingInfo.current : pagingInfo.current + 1})}">></a></li>
+                        <li th:if = "${category != null}" class="page-item"><a class="page-link" th:href="@{/(category = ${category},page = ${pagingInfo.current + 1 > pagingInfo.last ? pagingInfo.current : pagingInfo.current + 1})}">></a></li>
+                    </th:block>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-sm-8" style="border : 1px solid;">
+            <table class="table" style="height : 30px; border : 1px solid;">
+                <thead>
+                <tr>
+                    <th th:if = "${category != null}" colspan="3" th:text = "${category}"></th>
+                    <th colspan="3" th:if = "${category == null}" th:text="ALL"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="post : ${posts}" style="height : 140px">
+                    <td style="vertical-align:middle; width:140px; height:140px;" align="center">
+                        <img th:src="@{/photos/{saveName}(saveName = ${post.photos[0].saveName})}" style="max-height : 100%; max-width : 100%;">
+                    </td>
+                    <td>
+                        <div style="height : 100px;">
+                            <p style="font-weight : bold" th:text = "${post.title}"></p>
+                            <p style="width : 200px; overflow : hidden; text-overflow: ellipsis; display : -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" th:text = "${post.content}"></p>
+                            <span class= "price" th:text = "${post.price}"></span><span>\</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size : 0.5em">
+                            <span>글 번호 : </span><span th:text = "${post.id}"></span><br>
+                            <span>작성자 </span><span th:text = "${post.member.userId}"></span><br>
+                            <span>조회수 : </span><span th:text = "${post.views}"></span><br>
+                            <span>작성일 </span><span class="date" th:text = "${post.postDate}"></span><br>
+                        </div>
+                        <br>
+                        <a th:href = "@{/posts/{postId}(postId = ${post.id})}"><button type="button" th:class="${post.status == T(market.thunder.domain.PostStatus).OUT ? 'btn btn-outline-danger' : 'btn btn-outline-primary me-2'}"><span th:text = "${post.status}"></span></button></a>
+                    </td>
+<!--                    <td><a th:text = "${post.status}" th:href = "@{/posts/{postId}(postId = ${post.id})}"></a></td>-->
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-2" style = "background-color:ivory">광고</div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+<!--            Footer-->
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

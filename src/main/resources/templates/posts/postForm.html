@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <style>
+        .form-error{
+            color : red;
+            font-size : 0.7em;
+        }
+    </style>
+        <script>
+            window.onload = function(){
+                var givenPhotos = document.getElementsByClassName("given-photo");
+
+                var photosArea = document.getElementsByClassName("photo-list")[0];
+
+                for(var i = 0 ; i < givenPhotos.length; i++){
+                    (function(i){
+                        var saveName = givenPhotos[i].value;
+
+                        var photoArea = document.createElement("div");
+
+                        photoArea.className = "photo-area";
+                        photoArea.style.height = "100px";
+                        photoArea.style.width = "100px";
+                        photoArea.style.backgroundImage = "url(/photos/" + saveName + ")";
+                        photoArea.style.backgroundSize = "100px 100px";
+
+                        photosArea.append(photoArea);
+
+                        var deleteButton = document.createElement("button");
+                        deleteButton.innerHTML = "삭제";
+                        deleteButton.type = "button";
+                        photosArea.append(deleteButton);
+
+                        // Form으로 제출할 값(saveName) 설정
+                        var submitForm = document.getElementById("submitForm");
+
+                        var formInput = document.createElement("input");
+                        formInput.type = "hidden";
+                        formInput.name = "saveNames";
+                        formInput.value = saveName;
+                        submitForm.append(formInput);
+
+                        // 삭제 버튼
+                        // 보여주는 사진, form에서 제출하려 했던 saveName 등을 제거
+                        deleteButton.onclick = function(){
+                            photoArea.remove();
+                            formInput.remove();
+                            deleteButton.remove();
+                        }
+                    })(i);
+                }
+            }
+
+            function deletePhoto(obj){
+                alert(obj.innerHTML);
+            }
+
+            function uploadPhoto(obj){
+                if(document.getElementsByClassName("photo-area").length + obj.files.length > 3){
+                    alert('이미지는 3개까지 업로드 할 수 있습니다.');
+                    return;
+                }
+
+                var photosArea = document.getElementsByClassName("photo-list")[0];
+
+                for(const file of obj.files){
+                    (function(file) {
+                        var formData = new FormData();
+                        formData.append("photo", file);
+
+                        fetch(
+                            '/photos/upload',
+                            {
+                                method : 'POST',
+                                body : formData,
+                                async : false
+                            }
+                        )
+                        .then((response) => {
+                            return response.json();
+                        }).then((json) => {
+                            console.log(file.name);
+                            var saveName = json.saveName;
+                            var photoArea = document.createElement("div");
+                            photoArea.className = "photo-area";
+                            photoArea.style.height = "100px";
+                            photoArea.style.width = "100px";
+                            photoArea.style.backgroundImage = "url(/photos/" + saveName + ")";
+                            photoArea.style.backgroundSize = "100px 100px";
+
+                            photosArea.append(photoArea);
+
+                            var deleteButton = document.createElement("button");
+                            deleteButton.innerHTML = "삭제";
+                            deleteButton.type = "button";
+                            photosArea.append(deleteButton);
+
+
+                            // Form으로 제출할 값(saveName) 설정
+                            var submitForm = document.getElementById("submitForm");
+
+                            var formInput = document.createElement("input");
+                            formInput.type = "hidden";
+                            formInput.name = "saveNames";
+                            formInput.value = saveName;
+                            submitForm.append(formInput);
+
+                            // 삭제 버튼
+                            // 보여주는 사진, form에서 제출하려 했던 saveName 등을 제거
+                            deleteButton.onclick = function(){
+                                photoArea.remove();
+                                formInput.remove();
+
+                                deleteButton.remove();
+                            }
+                        });
+                    })(file);
+                }
+
+                // files Element 자체에서 파일 들고 있는 경우를 방지하기 위해
+                document.getElementById("files").value = "";
+            }
+        </script>
+
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12" style="height : 100px;">
+            <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2">
+            <span class="fs-4">Categories</span>
+            <ul class="nav nav-pills flex-column mb-auto" style="height : 480px; border-right:solid;">
+                <li class="nav-item">
+                    ALL
+                </li>
+                <li class="nav-item">
+                    ELECTRONICS
+                </li>
+                <li class="nav-item">
+                    TOYS
+                </li>
+            </ul>
+        </div>
+        <div class="col-sm-8">
+            <form id = "submitForm" th:action = "@{${postInfoForm.action}}" method="POST" th:object = ${postForm} onsubmit="return checkForm(this)">
+                <input type = "hidden" name = "_method" th:value="${postInfoForm.actionMethod}">
+                <label th:for="category">카테고리</label>
+                <select th:field="*{category}">
+                    <option value = "TOYS">Toys</option>
+                    <option value = "CLOTHES">Clothes</option>
+                    <option value = "ELECTRONICS">Electronics</option>
+                </select><br>
+
+                <label th:for="title">제목</label>
+                <input style = "width : 60%; overflow : scroll;" type = "text" th:field="*{title}" placeholder="제목을 입력하세요"><br>
+                <p class = "form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">제목</p>
+
+                <div style="vertical-align:top;">
+                    <label th:for="content">내용</label>
+                    <textarea style="width:80%; height : 200px; vertical-align:top;" th:field="*{content}" placeholder="내용을 입력하세요"> </textarea>
+                    <p class = "form-error" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></p>
+                </div>
+                <br>
+                <label th:if ="${postInfoForm.actionMethod == 'PUT'}" th:for="postStatus">상태</label>
+                <select th:if = "${postInfoForm.actionMethod == 'PUT'}" th:field="*{postStatus}">
+                    <option value = "SALE" selected>SALE</option>
+                    <option value = "OUT">OUT</option>
+                </select><br>
+
+                <label th:for="price">가격</label>
+                <input type = "number" th:field="*{price}"><br>
+                <p class = "form-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">제목</p>
+
+
+                <label for="files" style="border: solid; background-color : #E2E2E2;">Select file</label>
+                <p class = "form-error" th:if="${#fields.hasErrors('saveNames')}" th:errors="*{saveNames}">제목</p>
+
+                <input id = "files" type="file" multiple onchange="uploadPhoto(this)" hidden>
+
+                <div class="photo-list"></div>
+
+                <table>
+                    <tr th:each="saveName : ${postForm.saveNames}">
+                        <td><input type="hidden" class = "given-photo" th:value = ${saveName}></td>
+                    </tr>
+                </table>
+                <br>
+                <button type = "submit" th:text = "${postInfoForm.actionMethod == 'PUT' ? '수정하기' : '작성하기'}"></button>
+
+
+            </form>
+        </div>
+        <div class="col-sm-2" style = "background-color:ivory">광고</div>
+
+    </div>
+</div>
+</body>
+</html>
+

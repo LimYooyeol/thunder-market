@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <style>
+        .tr, td{
+            border : solid;
+        }
+    </style>
+    <script>
+        function temp(num){
+            alert(num);
+        }
+
+        window.onload = function(){
+            var price = parseInt(document.getElementById("price").innerHTML);
+            document.getElementById("price").innerHTML = price.toLocaleString('ko-KR');
+
+            loadComments();
+        }
+
+        function deleteComment(commentId){
+            fetch(
+                    '/comments/' + commentId,
+                    {
+                        method : 'delete'
+                    }
+                )
+                .then((response) => {
+                    loadComments();
+                })
+        }
+
+        function loadComments(){
+            var postId = document.getElementById("postId").value;
+
+            var comments = document.getElementsByClassName("comment");
+
+            while(comments.length > 0){
+                comments[0].parentNode.removeChild(comments[0]);
+            }
+
+            fetch(
+                '/posts/' + postId + '/comments',
+                {
+                    method : 'GET'
+                }
+            )
+            .then((response) => {
+                return response.json();
+            })
+            .then((json) => {
+                var table = document.getElementById("commentTable");
+                for(var i = 0; i < json.length; i++){
+                    var comment = document.createElement("tr");
+                    comment.id = "comment" + json[i].commentId;
+                    comment.setAttribute("class", "comment");
+
+                    var commenterId = document.createElement("td");
+                    if(json[i].commentId == json[i].groupId){
+                        commenterId.innerHTML = json[i].userId;
+                    }else{
+                        commenterId.innerHTML = "ㄴ" + json[i].userId;
+                    }
+
+                    var content = document.createElement("td");
+                    if(json[i].status == "DELETED"){
+                        content.innerHTML = "삭제된 댓글입니다.";
+                        content.style.fontSize = "0.5em";
+                    }else{
+                        content.innerHTML = json[i].content;
+                    }
+
+                    var commentDate = document.createElement("td");
+                    commentDate.innerHTML = json[i].commentDate;
+
+                    var replyButtonArea = document.createElement("td");
+                    var replyButton = document.createElement("button");
+                    replyButton.type = "button";
+                    replyButton.innerHTML = "답장";
+                    replyButton.setAttribute("onClick", "replyForm(" + json[i].groupId + ")");
+
+                    var deleteButtonArea = document.createElement("td");
+                    var deleteButton = document.createElement("button");
+                    deleteButton.type = "button";
+                    deleteButton.innerHTML = "삭제";
+                    deleteButton.setAttribute("onClick", "deleteComment(" + json[i].commentId + ")");
+
+                    var modifyButtonArea = document.createElement("td");
+                    var modifyButton = document.createElement("button");
+                    modifyButton.type = "button";
+                    modifyButton.innerHTML = "수정";
+                    modifyButton.setAttribute("onClick", "modifyForm(" + json[i].commentId + ")");
+
+                    var loginIdArea = document.getElementById("userId");
+                    if(loginIdArea == null){
+                        replyButton.setAttribute("disabled", true);
+                        deleteButton.setAttribute("disabled", true);
+                        modifyButton.setAttribute("disabled", true);
+                    }
+                    else if(loginIdArea.value != json[i].userId){
+                        deleteButton.setAttribute("disabled", true);
+                        modifyButton.setAttribute("disabled", true);
+                    }
+
+                    replyButtonArea.appendChild(replyButton);
+                    deleteButtonArea.appendChild(deleteButton);
+                    modifyButtonArea.appendChild(modifyButton);
+
+                    comment.appendChild(commenterId);
+                    comment.appendChild(content);
+                    comment.appendChild(commentDate);
+                    comment.appendChild(replyButtonArea);
+                    comment.appendChild(deleteButtonArea);
+                    comment.appendChild(modifyButtonArea);
+
+                    table.append(comment);
+                }
+            });
+        }
+
+        function replyForm(groupId){
+            if(document.getElementById("reply") != null){
+                document.getElementById("reply").remove();
+            }
+
+            var comment = document.getElementById("comment" + groupId);
+
+            var div = document.createElement("div");
+            div.id = "reply";
+
+            var replyForm = document.createElement("form");
+            replyForm.id = "replyForm";
+            replyForm.setAttribute("onsubmit", "return uploadReply()");
+
+            var postId = document.createElement("input");
+            postId.name = "postId";
+            postId.type = "hidden";
+            postId.value = document.getElementById("postId").value;
+
+            var userId = document.createElement("input");
+            userId.name = "userId";
+            userId.type = "hidden";
+            userId.value = document.getElementById("userId").value;
+
+            var content = document.createElement("input");
+            content.id = "replyContent";
+            content.name = "content";
+            content.type = "text";
+            content.placeholder = "답글을 입력해주세요.";
+
+            var formGroupId = document.createElement("input");
+            formGroupId.name = "groupId";
+            formGroupId.type = "hidden";
+            formGroupId.value = groupId;
+
+            replyForm.appendChild(postId);
+            replyForm.appendChild(userId);
+            replyForm.appendChild(content);
+            replyForm.appendChild(formGroupId);
+
+            var btn = document.createElement("button");
+            btn.type = "submit";
+            btn.innerHTML = "작성";
+
+            replyForm.appendChild(btn);
+
+            div.appendChild(replyForm);
+
+            comment.after(div);
+        }
+
+        function uploadReply(){
+            var form = document.getElementById("replyForm");
+
+            if(document.getElementById("replyContent").value == ''){
+                alert('내용을 입력해주세요.');
+                return false;
+            }
+
+            document.getElementById("reply").remove();
+
+            uploadComment(form);
+
+            return false;
+        }
+
+        function modifyForm(commentId){
+            if(document.getElementById("modify") != null){
+                document.getElementById("modify").remove();
+            }
+
+            var comment = document.getElementById("comment" + commentId);
+
+            var div = document.createElement("div");
+            div.id = "modify";
+
+            var newContent = document.createElement("input");
+            //newContent.style.width = "80%";
+            newContent.id = "newContent";
+            newContent.placeholder = "수정할 내용을 입력하세요.";
+            newContent.type = "text";
+
+            var modifyButton = document.createElement("button");
+            modifyButton.type = "button";
+            modifyButton.setAttribute("onClick", "modifyComment(" + commentId + ")");
+            modifyButton.innerHTML = "수정";
+
+            div.appendChild(newContent);
+            div.appendChild(modifyButton);
+            comment.after(div);
+        }
+
+        function modifyComment(commentId){
+            const data = {"newContent" : document.getElementById("newContent").value};
+
+            if(data.newContent == ''){
+                alert('내용을 입력해주세요.');
+                return;
+            }
+
+            fetch(
+                '/comments/' + commentId,
+                {
+                    method : 'PUT',
+                    headers : {
+                        'Content-Type' : 'application/json'
+                    },
+                    body : JSON.stringify(data)
+                }
+            ).then(response => {
+                loadComments();
+                document.getElementById("modify").remove();
+            })
+        }
+
+        function uploadComment(form){
+            var data = new FormData(form);
+
+            if(form.content.value == ''){
+                alert('내용을 입력해주세요.');
+                return false;
+            }
+
+            fetch(
+                '/comments/upload',
+                {
+                    method : 'POST',
+                    body : data,
+                }
+            )
+            .then((response) =>
+                {
+                    loadComments();
+                    document.getElementById("content").value = '';
+                }
+            )
+
+            return false;
+        }
+    </script>
+</head>
+<body>
+<input th:if = "${userId != null} "type="hidden" id = "userId" th:value = "${userId}">
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12" style="height : 100px;">
+            <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2" style="border-right : 1px solid; height : 480px">
+            <span class="fs-4">Categories</span>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href = "/">ALL</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=TOYS">TOYS</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=CLOTHES">CLOTHES</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=ELECTRONICS">ELECTRONICS</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-sm-8">
+            <div class="row">
+
+            <table border="solid">
+                <tr><td colspan="2" width="700px"><span th:text = ${post.title}></span></td></tr>
+                <tr>
+                    <td width="200px" height="200px" style="text-align : center; margin: 0 auto">
+                        <div style="overflow:scroll; width : 200px; height : 200px;">
+                            <th:block th:each = "photo : ${post.photos}">
+                                <img style="max-width:200px; max-height : 200px;" th:src="@{/photos/{saveName}(saveName = ${photo.saveName})}">
+                            </th:block>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="height :200px; font-size : 0.8em">
+                            <b>작성자 : </b><span th:text="${post.member.userId}"></span>
+                            <b>작성일 : </b><span th:text="${post.postDate}"></span>
+                            <b>조회수 : </b><span th:text="${post.views}"></span>
+                            <b>글 번호 : </b><span th:text="${post.id}"></span>
+                            <div style="height : 65%;">
+                                <h5>상품설명</h5>
+                                <div style= "height : 80%; overflow:scroll;">
+                                    <p th:text = "${post.content}"></p>
+                                </div>
+                            </div>
+                            <div style="font-size : 1.3em">
+                                <span>PRICE : </span><span id = "price" th:text = "${post.price}"></span><span>\</span>
+                                <br><span th:style="${post.status == T(market.thunder.domain.PostStatus).SALE ? 'background-color:skyblue;' : 'background-color : pink;'}" th:text = "${post.status}"></span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            </div>
+            <div class="row">
+                <form style = "float: left;" th:action="@{{postId}/update(postId = ${post.id})}" method="get">
+                    <button th:if = "${post.member.userId == userId}">수정</button>
+                </form>
+                <form th:action="@{/posts/{postId}/delete(postId = ${post.id})}" style = "float:left" method="POST">
+                    <input type = "hidden" name = "_method" th:value="DELETE">
+                    <button th:if = "${post.member.userId == userId}">삭제</button>
+                </form>
+            </div>
+            <div class="row" style="vertical-align : top;">
+                <div>
+                    <input type="hidden" id = "postId" th:value = "${post.id}">
+                    <table id = "commentTable" style="width:100%">
+                        <thead>
+                        <th width="10%">작성자</th><th width="50%">내용</th><th width="10%">작성 시간</th><th></th><th></th><th></th>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <form onsubmit="return uploadComment(this)" method="POST" th:object = "${commentForm}">
+                    <input type="text" name = "userId" th:value="${userId}" hidden>
+                    <input type="text" name = "postId" th:value="${post.id}" hidden>
+                    <input type="text" name = "groupId" th:value = "0" hidden>
+                    <input th:field = "*{content}" th:placeholder = "${userId == null ? '로그인 후 이용해주세요' : '댓글을 입력해주세요'}" style="width : 90%" type = "text">
+                    <button th:if = "${userId}" type = "submit">작성</button>
+                    <button th:if = "${userId == null}" disabled = "true" type="submit">작성</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-sm-2" style = "background-color:ivory">광고</div>
+    </div>
+</div>
+
+</body>
+</html>

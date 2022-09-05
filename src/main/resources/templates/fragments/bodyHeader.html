@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div class="container" th:fragment="bodyHeader">
+    <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+        <a href="/" class="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">
+            <h1>천둥마켓</h1>
+<!--            <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap">d<use xlink:href="#bootstrap"></use></svg>-->
+        </a>
+
+        <div class="col-md-3 text-end">
+            <a href = "/posts/write"><button type="button" class="btn btn-outline-primary me-2">글쓰기</button></a>
+            <a th:if="${userId == null}" href = "/login"><button type="button" class="btn btn-outline-primary me-2">Login</button></a>
+            <a th:if="${userId != null}" href = "/logout"><button type="button" class="btn btn-outline-primary me-2">Logout</button></a>
+<!--            <button th:if="${userId == null}" type="button" class="btn btn-primary">Sign-up</button>-->
+<!--            <button th:if = "${userId != null}" type="button" class="btn btn-primary">My Page</button>-->
+        </div>
+    </header>
+</div>

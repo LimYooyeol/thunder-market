@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="css/bootstrap.css">
+
+    <script>
+        function checkLogin(form){
+
+            var data = new FormData(form);
+
+            fetch(
+                '/login-check',
+                {
+                    method : 'POST',
+                    body : data
+                }
+            )
+            .then((response) => {
+                return response.json();
+            })
+            .then((json) => {
+                if(json.check != true){
+                    alert('ID 혹은 비밀번호가 잘못되었습니다.');
+                }
+            })
+
+        }
+
+    </script>
+
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12" style="height : 100px;">
+            <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2" style="height : 480px">
+            <span class="fs-4">Categories</span>
+            <ul class="nav nav-pills flex-column mb-auto" style="border-right : solid;">
+                <li class="nav-item">
+                    <a href = "/">ALL</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=TOYS">TOYS</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=CLOTHES">CLOTHES</a>
+                </li>
+                <li class="nav-item">
+                    <a href = "/?category=ELECTRONICS">ELECTRONICS</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-sm-8" style="border : 1px solid;">
+
+            <form action = "/login" method = "post" th:object = ${loginForm} onsubmit="checkLogin(this)">
+                <label th:for = "userId">ID</label>
+                <input type="text" class="form-control" th:field = "*{userId}" placeholder="아이디를 입력하세요">
+
+                <label th:for="password">비밀번호</label>
+                <input type = "password" class="form-control" th:field="*{password}" placeholder="비밀번호를 입력하세요"><br>
+
+                <button type = "submit">Login</button><br>
+                <a href = "members/signup">회원가입</a>
+            </form>
+        </div>
+
+        <div class="col-sm-2" style = "background-color:ivory">광고</div>
+    </div>
+</div>
+</body>
+</html>
