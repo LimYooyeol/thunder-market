@@ -8,10 +8,12 @@ https://www.youtube.com/watch?v=xzkehthGkq4
 - Back-end
   - Spring Boot 2.7.2
   - JPA
+  
 - Front-end
   - HTML, CSS, JavaScript
   - Thymeleaf
   - Bootstrap5
+  
 - Database
   - H2 database
 
