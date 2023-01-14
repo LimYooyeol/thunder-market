@@ -25,6 +25,7 @@ https://www.youtube.com/watch?v=xzkehthGkq4
   - 로그아웃
   
 - 게시물
+  - 게시물 조회
   - 게시물 작성(이미지 첨부)
   - 게시물 수정
   - 게시물 삭제
