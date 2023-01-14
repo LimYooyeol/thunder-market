@@ -2,6 +2,7 @@ package market.thunder.domain;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import market.thunder.form.PostForm;
 import org.hibernate.annotations.Fetch;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@ToString
 public class Post {
 
     @Id

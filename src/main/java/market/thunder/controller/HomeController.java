@@ -5,6 +5,12 @@ import market.thunder.domain.Category;
 import market.thunder.domain.Post;
 import market.thunder.form.PagingInfo;
 import market.thunder.service.PostService;
+import org.springframework.core.annotation.Order;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +28,8 @@ public class HomeController {
 
     // 홈페이지
     @GetMapping("/")
-    public String home(@RequestParam(defaultValue = "1") int page, @RequestParam(required = false) Category category,
+    public String home(@RequestParam(defaultValue = "1") int page,
+                       @RequestParam(required = false) Category category,
                        Model model, HttpSession session){
         if(session.getAttribute("userId") != null){
             model.addAttribute("userId", session.getAttribute("userId"));
@@ -37,10 +44,15 @@ public class HomeController {
             page = totalPages;
         }
 
-        List<Post> posts = postService.getPage(category, page);
+        Sort.Order order1 = new Sort.Order(Sort.Direction.DESC, "status");
+        Sort.Order order2 = new Sort.Order(Sort.Direction.DESC, "postDate");
+        Sort sort = Sort.by(order1, order2);
+
+        Pageable pageable = PageRequest.of(page - 1, 3, sort);
+
+        List<Post> posts = postService.getPage(category, pageable);
 
         model.addAttribute("category", category);
-
         model.addAttribute("posts", posts);
         model.addAttribute("pagingInfo",
                 new PagingInfo(page, totalPages));

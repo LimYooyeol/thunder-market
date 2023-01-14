@@ -5,13 +5,14 @@ import market.thunder.domain.Category;
 import market.thunder.domain.Post;
 import market.thunder.form.PostForm;
 import market.thunder.repository.PostRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PostUpdate;
-import java.awt.print.Pageable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,67 +25,57 @@ public class PostService {
     // 게시물 등록
     @Transactional
     public Long post(Post post){
-        return postRepository.save(post);
+        return postRepository.save(post).getId();
     }
 
     // 게시물 ID로 게시물 조회
     public Post findByPostId(Long postId){
-        return postRepository.findByPostId(postId);
+        return postRepository.findById(postId).orElse(null);
     }
 
     // 페이지에 해당 하는 게시물 조회
-    public List<Post> getPage(Category category, int page) {
+    public List<Post> getPage(Category category, Pageable pageable) {
 
         List<Post> posts;
 
         if(category == null) {
-            posts = postRepository.findAll();
+            posts = postRepository.findAll(pageable).getContent();
         }
         else{
-            posts = postRepository.findCategory(category);
+            posts = postRepository.findByCategory(category, pageable).getContent();
         }
 
-        int start = (page - 1) * 3;
-        int end = start + 3;
-        List<Post> pagePosts = new ArrayList<>();
-
-        for(int i = start; i < end && i < posts.size(); i++){
-            pagePosts.add(posts.get(i));
-        }
-
-        return pagePosts;
+        return posts;
     }
 
     // 게시물 수 카운트
     public int countPost(Category category) {
-        List<Post> posts;
         if(category == null) {
-            posts = postRepository.findAll();
+            return (int)postRepository.count();
         }
         else{
-            posts = postRepository.findCategory(category);
+            return postRepository.countByCategory(category).intValue();
         }
 
-        return posts.size();
     }
 
     // 게시물 조회수 추가
     @Transactional
     public void countView(Long postId) {
-        Post post = postRepository.findByPostId(postId);
+        Post post = postRepository.findById(postId).orElse(null);
         post.setView(post.getViews() + 1L);
     }
 
     // 게시물 업데이트
     @Transactional
     public void updatePost(Long postId, PostForm postForm){
-        Post post = postRepository.findByPostId(postId);
+        Post post = postRepository.findById(postId).orElse(null);
         post.updatePost(postForm);
     }
 
     // 게시물 삭제
     @Transactional
     public void delete(Long postId) {
-        postRepository.delete(postId);
+        postRepository.delete(postRepository.findById(postId).orElse(null));
     }
 }
