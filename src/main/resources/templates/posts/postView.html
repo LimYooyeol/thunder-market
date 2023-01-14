@@ -16,6 +16,11 @@
             var price = parseInt(document.getElementById("price").innerHTML);
             document.getElementById("price").innerHTML = price.toLocaleString('ko-KR');
 
+            var dates = document.getElementsByClassName("date");
+            for(var date of dates){
+                date.innerText = date.innerText.substring(0, 10);
+            }
+
             loadComments();
         }
 
@@ -72,7 +77,7 @@
                     }
 
                     var commentDate = document.createElement("td");
-                    commentDate.innerHTML = json[i].commentDate;
+                    commentDate.innerHTML = json[i].commentDate.substring(0, 10);
 
                     var replyButtonArea = document.createElement("td");
                     var replyButton = document.createElement("button");
@@ -303,7 +308,7 @@
                     <td>
                         <div style="height :200px; font-size : 0.8em">
                             <b>작성자 : </b><span th:text="${post.member.userId}"></span>
-                            <b>작성일 : </b><span th:text="${post.postDate}"></span>
+                            <b>작성일 : </b><span class="date" th:text="${post.postDate}"></span>
                             <b>조회수 : </b><span th:text="${post.views}"></span>
                             <b>글 번호 : </b><span th:text="${post.id}"></span>
                             <div style="height : 65%;">
@@ -324,19 +329,19 @@
             </div>
             <div class="row">
                 <form style = "float: left;" th:action="@{{postId}/update(postId = ${post.id})}" method="get">
-                    <button th:if = "${post.member.userId == userId}">수정</button>
+                    <button class="btn btn-sm btn-light" th:if = "${post.member.userId == userId}">수정</button>
                 </form>
                 <form th:action="@{/posts/{postId}/delete(postId = ${post.id})}" style = "float:left" method="POST">
                     <input type = "hidden" name = "_method" th:value="DELETE">
-                    <button th:if = "${post.member.userId == userId}">삭제</button>
+                    <button class="btn btn-sm btn-light" th:if = "${post.member.userId == userId}">삭제</button>
                 </form>
             </div>
             <div class="row" style="vertical-align : top;">
                 <div>
                     <input type="hidden" id = "postId" th:value = "${post.id}">
-                    <table id = "commentTable" style="width:100%">
+                    <table class="table" id = "commentTable" style="width:100%">
                         <thead>
-                        <th width="10%">작성자</th><th width="50%">내용</th><th width="10%">작성 시간</th><th></th><th></th><th></th>
+                        <th width="10%">작성자</th><th width="50%">내용</th><th>작성일</th><th></th><th></th><th></th>
                         </thead>
                     </table>
                 </div>
